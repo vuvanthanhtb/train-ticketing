@@ -3,6 +3,8 @@ version: '3.2'
 networks:
   pre-event-member-mysql:
     driver: bridge
+  pre-event-network:
+    driver: bridge
 
 services:
   mysql:
@@ -168,4 +170,3 @@ services:
       - pre-event-network
     depends_on:
       - elasticsearch
-

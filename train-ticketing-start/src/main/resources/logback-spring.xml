@@ -7,7 +7,6 @@
     <property name="LOG_PATH" value="${user.home}/${APP_NAME}/logs"/>
     <property name="LOG_FILE" value="${LOG_PATH}/application.log"/>
 
-    <!-- Appender gửi log tới Logstash -->
     <appender name="LOG_STASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
         <destination>localhost:5044</destination>
         <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
