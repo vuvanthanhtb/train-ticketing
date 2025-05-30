@@ -25,7 +25,7 @@ public class RedisDistributedLockerImpl implements RedisDistributedService {
             @Override
             public boolean tryLock(long waitTime, long leaseTime, TimeUnit unit) throws InterruptedException {
                 boolean isLockSuccess = rLock.tryLock(waitTime, leaseTime, unit);
-//                log.info("{} get lock result:{}", lockKey, isLockSuccess);
+                log.info("{} get lock result:{}", lockKey, isLockSuccess);
                 return isLockSuccess;
             }
 

@@ -1,30 +1,77 @@
 package com.train_ticketing.controller.http;
 
+import com.train_ticketing.application.model.TicketDetailDTO;
 import com.train_ticketing.application.service.ticket.TicketDetailAppService;
 import com.train_ticketing.controller.model.enums.ResultUtil;
 import com.train_ticketing.controller.model.vo.ResultMessage;
-import com.train_ticketing.domain.model.entity.TicketDetail;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/ticket")
 @Slf4j
+@RequiredArgsConstructor
 public class TicketDetailController {
-    @Autowired
-    private TicketDetailAppService ticketDetailAppService;
+    private final TicketDetailAppService ticketDetailAppService;
 
+    @GetMapping("/ping/java")
+    public ResponseEntity<Object> ping() throws InterruptedException {
+        // Giả lập tác vụ mất thời gian
+        Thread.sleep(1000);
+
+        // Trả về response với status OK
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new Response("OK"));
+    }
+
+    /**
+     * Get ticket detail
+     *
+     * @param ticketId
+     * @param detailId
+     * @return ResultUtil
+     */
     @GetMapping("/{ticketId}/detail/{detailId}")
-    public ResultMessage<TicketDetail> getTicketDetail(
+    public ResultMessage<TicketDetailDTO> getTicketDetail(
+            @PathVariable("ticketId") Long ticketId,
+            @PathVariable("detailId") Long detailId,
+            @RequestParam(name = "version", required = false) Long version
+    ) {
+        return ResultUtil.data(ticketDetailAppService.getTicketDetailById(detailId, version));
+    }
+
+    /**
+     * order by User
+     *
+     * @param ticketId
+     * @param detailId
+     * @return ResultUtil
+     */
+    @GetMapping("/{ticketId}/detail/{detailId}/order")
+    public boolean orderTicketByUser(
             @PathVariable("ticketId") Long ticketId,
             @PathVariable("detailId") Long detailId
     ) {
-        log.info("MEMBER TIPS GO");
-        log.info(" ticketId:{}, detailId:{}", ticketId, detailId);
-        return ResultUtil.data(ticketDetailAppService.getTicketDetailById(detailId));
+        return ticketDetailAppService.orderTicketByUser(detailId);
+    }
+
+    // Lớp Response để trả về JSON response
+    public static class Response {
+        private String status;
+
+        public Response(String status) {
+            this.status = status;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
     }
 }
