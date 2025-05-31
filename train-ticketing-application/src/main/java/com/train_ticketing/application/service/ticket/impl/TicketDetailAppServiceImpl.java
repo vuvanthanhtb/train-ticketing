@@ -7,28 +7,27 @@ import com.train_ticketing.application.service.ticket.TicketDetailAppService;
 import com.train_ticketing.application.service.ticket.cache.TicketDetailCacheService;
 import com.train_ticketing.application.service.ticket.cache.TicketDetailCacheServiceRefactor;
 import com.train_ticketing.domain.service.TicketDetailDomainService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 public class TicketDetailAppServiceImpl implements TicketDetailAppService {
 
-    @Autowired
+    @Resource
     private TicketDetailDomainService ticketDetailDomainService;
 
-    @Autowired
+    @Resource
     private TicketDetailCacheService ticketDetailCacheService;
 
-    @Autowired
+    @Resource
     private TicketDetailCacheServiceRefactor ticketDetailCacheServiceRefactor;
 
     @Override
     public TicketDetailDTO getTicketDetailById(Long ticketId, Long version) {
         log.info("Implement Application : {}, {}: ", ticketId, version);
         TicketDetailCache ticketDetailCache = ticketDetailCacheServiceRefactor.getTicketDetail(ticketId, version);
-        // mapper to DTO
         TicketDetailDTO ticketDetailDTO = TicketDetailMapper.mapperToTicketDetailDTO(ticketDetailCache.getTicketDetail());
         ticketDetailDTO.setVersion(ticketDetailCache.getVersion());
         return ticketDetailDTO;

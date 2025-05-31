@@ -16,19 +16,18 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class TicketDetailCacheService {
-    @Autowired
-    private RedisDistributedService redisDistributedService;
-    @Autowired // Khai bao cache
-    private RedisInfrastructureService redisInfrasService;
-    @Autowired
-    private TicketDetailDomainService ticketDetailDomainService;
-
     // use guava
     private final static Cache<Long, TicketDetail> ticketDetailCacheLocal = CacheBuilder.newBuilder()
             .initialCapacity(10)
             .concurrencyLevel(8)
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
+    @Autowired
+    private RedisDistributedService redisDistributedService;
+    @Autowired // Khai bao cache
+    private RedisInfrastructureService redisInfrasService;
+    @Autowired
+    private TicketDetailDomainService ticketDetailDomainService;
 
     public TicketDetail getTicketDefaultCacheNormal(Long id, Long version) {
         // 1. get ticket item by redis

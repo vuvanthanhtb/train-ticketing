@@ -8,8 +8,8 @@ import com.train_ticketing.domain.service.TicketDetailDomainService;
 import com.train_ticketing.infrastructure.cache.redis.RedisInfrastructureService;
 import com.train_ticketing.infrastructure.distributed.redisson.RedisDistributedLocker;
 import com.train_ticketing.infrastructure.distributed.redisson.RedisDistributedService;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -18,13 +18,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class TicketDetailCacheServiceRefactor {
 
-    @Autowired
-    private RedisDistributedService redisDistributedService;
-    @Autowired
-    private RedisInfrastructureService redisInfrastructureService;
-    @Autowired
-    private TicketDetailDomainService ticketDetailDomainService;
-
     // private static final Logger log = LoggerFactory.getLogger(TicketDetailCacheService.class);
     // use guava
     private final static Cache<Long, TicketDetailCache> ticketDetailLocalCache = CacheBuilder.newBuilder()
@@ -32,12 +25,19 @@ public class TicketDetailCacheServiceRefactor {
             .concurrencyLevel(8)
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
+    @Resource
+    private RedisDistributedService redisDistributedService;
+    @Resource
+    private RedisInfrastructureService redisInfrastructureService;
+    @Resource
+    private TicketDetailDomainService ticketDetailDomainService;
 
-    public boolean orderTicketByUser(Long ticketId){
+    public boolean orderTicketByUser(Long ticketId) {
         ticketDetailLocalCache.invalidate(ticketId); // remove local cache
         redisInfrastructureService.delete(genEventItemKey(ticketId));
         return true;
     }
+
     /**
      * get ticket item by id in cache
      */
@@ -49,28 +49,26 @@ public class TicketDetailCacheServiceRefactor {
 
             // User:version, cache:version
             // 1. version = null
-            if (version == null){
+            if (version == null) {
                 log.info("01: GET TICKET FROM LOCAL CACHE: versionUser:{}, versionLocal: {}", version, ticketDetailCache.getVersion());
                 return ticketDetailCache;
             }
 
-            if (version.equals(ticketDetailCache.getVersion())){
+            if (version.equals(ticketDetailCache.getVersion())) {
                 log.info("02: GET TICKET FROM LOCAL CACHE: versionUser:{}, versionLocal: {}", version, ticketDetailCache.getVersion());
                 return ticketDetailCache;
             }
 
             // version < ticketDetailCache.getVersion()
-            if (version < ticketDetailCache.getVersion()){
+            if (version < ticketDetailCache.getVersion()) {
                 log.info("03: GET TICKET FROM LOCAL CACHE: versionUser:{}, versionLocal: {}", version, ticketDetailCache.getVersion());
                 return ticketDetailCache;
             }
 
-            if (version > ticketDetailCache.getVersion()){
-                return getTicketDetailDistributedCache(ticketId);
-            }
+            return getTicketDetailDistributedCache(ticketId);
             // return ticketDetailCache;
         }
-        return getTicketDetailDistributedCache(ticketId);
+        return null;
     }
 
     /**
@@ -98,7 +96,7 @@ public class TicketDetailCacheServiceRefactor {
             return ticketDetailCache;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }finally {
+        } finally {
             locker.unlock();
         }
     }
@@ -109,7 +107,7 @@ public class TicketDetailCacheServiceRefactor {
     public TicketDetailCache getTicketDetailDistributedCache(Long ticketId) {
         // 1 - get data
         TicketDetailCache ticketDetailCache = redisInfrastructureService.getObject(genEventItemKey(ticketId), TicketDetailCache.class);
-        if(ticketDetailCache == null){
+        if (ticketDetailCache == null) {
             log.info("GET TICKET FROM DISTRIBUTED LOCK");
             ticketDetailCache = getTicketDetailDatabase(ticketId);
         }

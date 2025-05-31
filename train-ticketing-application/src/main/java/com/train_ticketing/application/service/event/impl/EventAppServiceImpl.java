@@ -2,13 +2,13 @@ package com.train_ticketing.application.service.event.impl;
 
 import com.train_ticketing.application.service.event.EventAppService;
 import com.train_ticketing.domain.service.HiDomainService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EventAppServiceImpl implements EventAppService {
 
-    @Autowired
+    @Resource
     private HiDomainService hiDomainService;
 
     @Override
